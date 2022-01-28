@@ -1,20 +1,5 @@
 -- Driving JTAC by buur
 
--- ToDo
--- JTAC has problems when he detect two enemys at the same time
--- Map marker for AV-8B ATHS should be optional - made problems because I need the markerid for the requestnumber.
--- Switching laser target should be anounced and a litte bit more time between the switch
--- Script stopp working when JTAC is destroyed
--- Optional Smoke
--- Message shows only to some groups
--- There is an error when a own unit enters the detection range?
--- ARMYGROUP hat wohl probleme mit Bunkern ... bekomme fehlermeldung wenn einer drinn ist.
--- check the enviroment on which the target is... flied, wood etc.. only possible to check if road or not. So this point is not so important.
--- check if two JTACs have the same target
--- make the target coordinats a little bit fuzzy
--- check for invisible mark points
--- make a general function for the first created mark point
-
 
 
 function s(table)
@@ -40,6 +25,8 @@ end
 	end
 
 active_requests = {}
+DrivingJTACShowRequest = {}
+  
 --local MenuDrivingJTACRed = MENU_COALITION:New( coalition.side.RED, "Driving JTAC" )
 --local MenuDrivingJTACBlue = MENU_COALITION:New( coalition.side.BLUE, "Driving JTAC" )
 local MenuDrivingJTAC = MENU_MISSION:New( "Driving JTAC" )
@@ -119,7 +106,7 @@ drivingJTAC = function(JTAC,RecceZone)--,ATHS_Marker)
 	  local distance = math.floor((self:GetCoordinate():Get2DDistance(self:GetDetectedUnits():GetCoordinate()))*1.09361+0.5)
 	  local angle = self:GetDetectedUnits():GetCoordinate():GetAngleDegrees(self:GetDetectedUnits():GetCoordinate():GetDirectionVec3(self:GetCoordinate()))
 	  local angle = Cardinals(angle)
-	  local text_NineLiner = string.format(" Message from %s \n Request Nr.: %d \n 4. ELEV %d \n 5. DESC %s \n    %s \n 6. %s \n     %s \n 7. Laser %d \n 8. FRND %s %s", self:GetName(), request ,(Group:GetHeight())*3.28084, currentthreattype, targetDescription, group:GetCoordinate():ToStringMGRS( nil ), group:GetCoordinate():ToStringLLDMS( nil ) , self:GetLaserCode(), distance, angle )
+	  local text_NineLiner = string.format(" Message from %s \n Request Nr.: %d \n 4. ELEV %d \n 5. DESC %s \n     %s \n 6. %s \n     %s \n 7. Laser %d \n 8. FRND %s %s", self:GetName(), request ,(Group:GetHeight())*3.28084, currentthreattype, targetDescription, group:GetCoordinate():ToStringMGRS( nil ), group:GetCoordinate():ToStringLLDMS( nil ) , self:GetLaserCode(), distance, angle )
 	  local text_JTAC = string.format("%s: has new request %d", self:GetName(), request)
 	  MESSAGE:New(text_JTAC, 30):ToCoalition(self:GetCoalition()) --:ToAll()
 
@@ -145,7 +132,7 @@ drivingJTAC = function(JTAC,RecceZone)--,ATHS_Marker)
 	 env.info("coaltitionName: " ..coaltitionName)
 	  
 	  
-	  
+	
 	  
 	  local Clients = SET_CLIENT:New():FilterCoalitions(coaltitionName):FilterStart()
 	  
@@ -157,8 +144,8 @@ drivingJTAC = function(JTAC,RecceZone)--,ATHS_Marker)
 				env.info("Player MenuClient NAME: " ..group:GetName())
 				--menuManage = MENU_GROUP:New(group,"Bla und Blub")
 				--MENU_GROUP_COMMAND:New( group, "Show Nine Liner", MenuManage, showNineLiner, group )
-				DrivingJTACShowRequest = MENU_COALITION_COMMAND:New( self:GetCoalition(), "Show Request "..request , MenuDrivingJTAC, showNineLiner, group) --ShowStatus, "Status of planes is ok!", "Message to Red Coalition" )
-
+				DrivingJTACShowRequest[group] = MENU_COALITION_COMMAND:New( self:GetCoalition(), "Show Request "..request , MenuDrivingJTAC, showNineLiner, group) --ShowStatus, "Status of planes is ok!", "Message to Red Coalition" )
+				DrivingJTACShowRequest = DrivingJTACShowRequest[group]
 
 			end
 		end)
