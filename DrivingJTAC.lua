@@ -15,8 +15,7 @@
 -- check for invisible mark points
 -- make a general function for the first created mark point
 
--- Hm, mit SET_CLIENT:New() eine Liste aller Clienten erstellen
--- dann mit GetSet() das Set auslesen
+
 
 function s(table)
 local Result = routines.utils.oneLineSerialize(table)
@@ -25,7 +24,7 @@ env.info(Result)
 return Result
 end
 
- Cardinals =function(angle)
+ Cardinals = function(angle)
       if     angle <= 22.5  and angle >= 0 then return "N"
 	  elseif angle <= 360   and angle > 337.5 then return "N"
 	  elseif angle <= 67.5  and angle > 22.5  then return "NW"
@@ -41,8 +40,10 @@ end
 	end
 
 active_requests = {}
-local MenuDrivingJTACRed = MENU_COALITION:New( coalition.side.RED, "Driving JTAC" )
-local MenuDrivingJTACBlue = MENU_COALITION:New( coalition.side.BLUE, "Driving JTAC" )
+--local MenuDrivingJTACRed = MENU_COALITION:New( coalition.side.RED, "Driving JTAC" )
+--local MenuDrivingJTACBlue = MENU_COALITION:New( coalition.side.BLUE, "Driving JTAC" )
+local MenuDrivingJTAC = MENU_MISSION:New( "Driving JTAC" )
+
 
 drivingJTAC = function(JTAC,RecceZone)--,ATHS_Marker)
 	--aths_marker = ATHS_Marker or false
@@ -121,16 +122,50 @@ drivingJTAC = function(JTAC,RecceZone)--,ATHS_Marker)
 	  local text_NineLiner = string.format(" Message from %s \n Request Nr.: %d \n 4. ELEV %d \n 5. DESC %s \n    %s \n 6. %s \n     %s \n 7. Laser %d \n 8. FRND %s %s", self:GetName(), request ,(Group:GetHeight())*3.28084, currentthreattype, targetDescription, group:GetCoordinate():ToStringMGRS( nil ), group:GetCoordinate():ToStringLLDMS( nil ) , self:GetLaserCode(), distance, angle )
 	  local text_JTAC = string.format("%s: has new request %d", self:GetName(), request)
 	  MESSAGE:New(text_JTAC, 30):ToCoalition(self:GetCoalition()) --:ToAll()
-	
-	   local function showNineLiner()
-			MESSAGE:New(text_NineLiner, 30):ToCoalition(self:GetCoalition())
+
+
+	-- einfuegung text nur auf einer Seite zu sehen
+	   local function showNineLiner(group)
+			MESSAGE:New(text_NineLiner, 60):ToGroup(group,20)
 		end
 
+	  env.info("self:GetCoalition: " ..self:GetCoalition())
 	  
+	  local coalitionNumber = self:GetCoalition()
 	  
-	  
+	  local coaltitionName = ""
 	
-	  DrivingJTACShowRequest = MENU_COALITION_COMMAND:New( self:GetCoalition(), "Show Request "..request , MenuDrivingJTACBlue, showNineLiner) --ShowStatus, "Status of planes is ok!", "Message to Red Coalition" )
+	  if coalitionNumber == 0 then
+		coaltitionName = "neutral" -- not sure if this is the right word
+	  elseif coalitionNumber == 1 then
+		coaltitionName = "red"
+	  else 
+		coaltitionName = "blue"
+	  end
+	 env.info("coaltitionName: " ..coaltitionName)
+	  
+	  
+	  
+	  
+	  local Clients = SET_CLIENT:New():FilterCoalitions(coaltitionName):FilterStart()
+	  
+		Clients:ForEachClient(function (MenuClient)
+			if MenuClient:GetGroup() ~= nil then
+				local group = MenuClient:GetGroup()
+				local groupName = group:GetName()
+
+				env.info("Player MenuClient NAME: " ..group:GetName())
+				--menuManage = MENU_GROUP:New(group,"Bla und Blub")
+				--MENU_GROUP_COMMAND:New( group, "Show Nine Liner", MenuManage, showNineLiner, group )
+				DrivingJTACShowRequest = MENU_COALITION_COMMAND:New( self:GetCoalition(), "Show Request "..request , MenuDrivingJTAC, showNineLiner, group) --ShowStatus, "Status of planes is ok!", "Message to Red Coalition" )
+
+
+			end
+		end)
+	
+	-- einfuegung ende
+		
+	  --DrivingJTACShowRequest = MENU_COALITION_COMMAND:New( self:GetCoalition(), "Show Request "..request , MenuDrivingJTACBlue, showNineLiner) --ShowStatus, "Status of planes is ok!", "Message to Red Coalition" )
 	  
 	  active_requests[self] = {["request"] = request, ["mymarker"] = mymarker , ["ShowRequest"] = DrivingJTACShowRequest}
 	  
@@ -190,7 +225,7 @@ drivingJTAC = function(JTAC,RecceZone)--,ATHS_Marker)
 		 local currentthreattype = ThreatLevels[maxThreat+1]
 
 
-		 s(whatsthat)
+		
 	  --currentthreatlevel = Target:GetThreatLevel()
 	  --currentthreattype = ThreatLevels[currentthreatlevel+1]
 	  local text=string.format("%s switching on LASER on Request %d (code %d) at target %s", self:GetName(),active_requests[self]["request"], self:GetLaserCode(), currentthreattype) --Target:GetName())
