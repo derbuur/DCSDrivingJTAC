@@ -13,7 +13,7 @@
 -- check if two JTACs have the same target
 -- make the target coordinats a little bit fuzzy
 -- check for invisible mark points
-
+-- make a general function for the first created mark point
 
 -- Hm, mit SET_CLIENT:New() eine Liste aller Clienten erstellen
 -- dann mit GetSet() das Set auslesen
