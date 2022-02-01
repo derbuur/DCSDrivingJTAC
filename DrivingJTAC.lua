@@ -1,8 +1,8 @@
 -- Driving JTAC by buur
 
--- trigger.action.markToCoalition( 1 , "T00" , {0,0,0} , 2 , true) -- dummy target, will not shown in target list
--- trigger.action.markToCoalition( 2 , "T00" , {0,0,0} , 0 , true) -- dummy target, will not shown in target list
--- trigger.action.markToCoalition( 3 , "T00" , {0,0,0} , 1 , true) -- dummy target, will not shown in target list
+-- Hinweise: UTILS.GetMarkID() UTILS._MarkID UTILS.RemoveMark(MarkID, Delay) 
+
+
 
 
 function s(table)
@@ -27,7 +27,8 @@ end
 	  end
 	end
 
-active_requests = {}
+dJTAC = {}
+dJTAC.active_requests = {}
 DrivingJTACShowRequest = {}
 
 
@@ -123,7 +124,7 @@ drivingJTAC = function(JTAC,RecceZone)--,ATHS_Marker)
 	  local distance = math.floor((self:GetCoordinate():Get2DDistance(self:GetDetectedUnits():GetCoordinate()))*1.09361+0.5)
 	  local angle = self:GetDetectedUnits():GetCoordinate():GetAngleDegrees(self:GetDetectedUnits():GetCoordinate():GetDirectionVec3(self:GetCoordinate()))
 	  local angle = Cardinals(angle)
-	  local text_NineLiner = string.format(" Message from %s \n Request Nr.: %d \n 4. ELEV %d \n 5. DESC %s \n     %s \n 6. %s \n     %s \n 7. Laser %d \n 8. FRND %s %s", self:GetName(), request ,(Group:GetHeight())*3.28084, currentthreattype, targetDescription, group:GetCoordinate():ToStringMGRS( nil ), group:GetCoordinate():ToStringLLDMS( nil ) , self:GetLaserCode(), distance, angle )
+	  local text_NineLiner = string.format(" Message from %s \n Request Nr.: %d \n 4. ELEV %d \n 5. DESC %s \n     %s \n 6. %s \n     %s \n 7. Laser %d \n 8. FRND %s %s", self:GetName(), request ,UTILS.MetersToFeet(Group:GetHeight()), currentthreattype, targetDescription, group:GetCoordinate():ToStringMGRS( nil ), group:GetCoordinate():ToStringLLDMS( nil ) , self:GetLaserCode(), distance, angle )
 	  local text_JTAC = string.format("%s: has new request %d", self:GetName(), request)
 	  MESSAGE:New(text_JTAC, 30):ToCoalition(self:GetCoalition())
 
@@ -158,8 +159,8 @@ drivingJTAC = function(JTAC,RecceZone)--,ATHS_Marker)
 				local group = MenuClient:GetGroup()
 				local groupName = group:GetName()
 
-				menuHandle[group] = MENU_COALITION_COMMAND:New( self:GetCoalition(), "Show Request "..request , MenuDrivingJTAC, showNineLiner, group)
-
+				menuHandle = MENU_COALITION_COMMAND:New( self:GetCoalition(), "Show Request "..request , MenuDrivingJTAC, showNineLiner, group) --[group]
+s(menuHandle)
 
 			end
 		end)
@@ -169,9 +170,9 @@ drivingJTAC = function(JTAC,RecceZone)--,ATHS_Marker)
 		
 	  --DrivingJTACShowRequest = MENU_COALITION_COMMAND:New( self:GetCoalition(), "Show Request "..request , MenuDrivingJTACBlue, showNineLiner) --ShowStatus, "Status of planes is ok!", "Message to Red Coalition" )
 	  
-	  active_requests[self] = {["request"] = request, ["mymarker"] = mymarker , ["ShowRequest"] = DrivingJTACShowRequest}
+	  dJTAC.active_requests[self] = {["request"] = request, ["mymarker"] = mymarker , ["ShowRequest"] = DrivingJTACShowRequest}
 	  
-	  return active_requests
+	  return dJTAC.active_requests
 
 	end
 
@@ -183,18 +184,18 @@ drivingJTAC = function(JTAC,RecceZone)--,ATHS_Marker)
 	--- Function called whenever a dected group could not be detected anymore.
 	function drivingJTAC:OnAfterDetectedGroupLost(From, Event, To, Group)
 	  local unitsGroup = self:GetDetectedUnits():GetTypeNames()  
-	  local text=string.format("%s: LOST Request %d, abort", self:GetName(), active_requests[self]["request"])
+	  local text=string.format("%s: LOST Request %d, abort", self:GetName(), dJTAC.active_requests[self]["request"])
 	  MESSAGE:New(text, 30):ToCoalition(self:GetCoalition())
 	  --env.info(text)
 		self:LaserOff()
 		self:RemoveWaypointByID(wpDetection.uid)
 		self:Cruise()
 		
-		active_requests[self]["mymarker"]:Remove()
-		request = active_requests[self]["request"]
+		dJTAC.active_requests[self]["mymarker"]:Remove()
+		local request = dJTAC.active_requests[self]["request"]
 
 		local importantTable = {}
-		importantTable = active_requests[self]["ShowRequest"]
+		importantTable = dJTAC.active_requests[self]["ShowRequest"]
 		for index, value in pairs(importantTable[request]) do
 			value:Remove()
 		end
@@ -235,7 +236,7 @@ drivingJTAC = function(JTAC,RecceZone)--,ATHS_Marker)
 		
 	  --currentthreatlevel = Target:GetThreatLevel()
 	  --currentthreattype = ThreatLevels[currentthreatlevel+1]
-	  local text=string.format("%s switching on LASER on Request %d (code %d) at target %s", self:GetName(),active_requests[self]["request"], self:GetLaserCode(), currentthreattype) --Target:GetName())
+	  local text=string.format("%s switching on LASER on Request %d (code %d) at target %s", self:GetName(),dJTAC.active_requests[self]["request"], self:GetLaserCode(), currentthreattype) --Target:GetName())
 	  MESSAGE:New(text, 30):ToCoalition(self:GetCoalition()) --:ToAll()
 	  env.info(text)        
 	end
