@@ -2,7 +2,9 @@
 
 -- Hinweise: UTILS.GetMarkID() UTILS._MarkID UTILS.RemoveMark(MarkID, Delay) 
 
-
+UTILS.MetersToYard = function(meters)
+  return meters*1.09361
+end
 
 
 function s(table)
@@ -97,7 +99,7 @@ drivingJTAC = function(JTAC,RecceZone)
 	--local mymarkerid = _MARKERID
 	local mymarkerid = UTILS.GetMarkID()
 	env.info("Markid "..mymarkerid)
-	local request = mymarkerid + 1
+	local request = mymarkerid - 1
     
 	 
 	local targetVelocity = self:GetDetectedUnits():GetFirst():GetVelocityKNOTS()
@@ -121,7 +123,7 @@ drivingJTAC = function(JTAC,RecceZone)
 	
 	local targetDescription = unitsGroup .. " - " .. targetVelocityText.." "..targetHeadingCardinals
 
-	  local distance = math.floor((self:GetCoordinate():Get2DDistance(self:GetDetectedUnits():GetCoordinate()))*1.09361+0.5)
+	  local distance = math.floor(UTILS.MetersToYard(self:GetCoordinate():Get2DDistance(self:GetDetectedUnits(1):GetCoordinate())))
 	  local angle = self:GetDetectedUnits():GetCoordinate():GetAngleDegrees(self:GetDetectedUnits():GetCoordinate():GetDirectionVec3(self:GetCoordinate()))
 	  local angle = Cardinals(angle)
 	  local text_NineLiner = string.format(" Message from %s \n Request Nr.: %d \n 4. ELEV %d \n 5. DESC %s \n     %s \n 6. %s \n     %s \n 7. Laser %d \n 8. FRND %s %s", self:GetName(), request ,UTILS.MetersToFeet(Group:GetHeight()), currentthreattype, targetDescription, group:GetCoordinate():ToStringMGRS( nil ), group:GetCoordinate():ToStringLLDMS( nil ) , self:GetLaserCode(), distance, angle )
