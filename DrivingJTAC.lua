@@ -32,26 +32,24 @@ dJTAC.active_requests = {}
 DrivingJTACShowRequest = {}
 
 
-	local BullsCoordinateBlue = COORDINATE:NewFromVec3( coalition.getMainRefPoint( 2 ) )
+	local BullsCoordinateBlue = COORDINATE:NewFromVec3( coalition.getMainRefPoint( 2 ) ) -- dummy Zone same as bullseye
 	local BullsCoordinateRed = COORDINATE:NewFromVec3( coalition.getMainRefPoint( 1 ) )
 	local BullsCoordinateGreen = COORDINATE:NewFromVec3( coalition.getMainRefPoint( 0 ) )
 
-	--local Coordinate=AIRBASE:FindByName("Batumi"):GetCoordinate() -- dummy coordinate for AV-8B ATHS
+
 	MARKER:New(BullsCoordinateBlue, "T00"):ToCoalition(2) -- dummy Zone for AV-8B ATHS
 	MARKER:New(BullsCoordinateRed, "T00"):ToCoalition(1)
 	MARKER:New(BullsCoordinateGreen, "T00"):ToCoalition(0)
 	
---s(Coordinate)
---env.info("coordinate Batumi "..Coordinate) 
 
 
---local MenuDrivingJTACRed = MENU_COALITION:New( coalition.side.RED, "Driving JTAC" )
---local MenuDrivingJTACBlue = MENU_COALITION:New( coalition.side.BLUE, "Driving JTAC" )
+
+
 local MenuDrivingJTAC = MENU_MISSION:New( "Driving JTAC" )
 
 
-drivingJTAC = function(JTAC,RecceZone)--,ATHS_Marker)
-	--aths_marker = ATHS_Marker or false
+drivingJTAC = function(JTAC,RecceZone)
+	
 
 	local drivingJTAC=ARMYGROUP:New(JTAC)
 	drivingJTAC:Activate()
@@ -96,7 +94,9 @@ drivingJTAC = function(JTAC,RecceZone)--,ATHS_Marker)
 	local Coordinate = group:GetCoordinate()
 	local mymarker=MARKER:New(Coordinate, "T00"):ToCoalition(self:GetCoalition()) --(coalition.side.BLUE)
 	
-	local mymarkerid = _MARKERID
+	--local mymarkerid = _MARKERID
+	local mymarkerid = UTILS.GetMarkID()
+	env.info("Markid "..mymarkerid)
 	local request = mymarkerid + 1
     
 	 
@@ -117,10 +117,10 @@ drivingJTAC = function(JTAC,RecceZone)--,ATHS_Marker)
 	else
 		targetHeadingCardinals = Cardinals(targetHeading)
 	end
-	--local targetVelocityText = tostring(targetVelocity)
-	--local targetVelocityText = "dummy"
+	
+	
 	local targetDescription = unitsGroup .. " - " .. targetVelocityText.." "..targetHeadingCardinals
---env.info("target Heading: " ..targetHeading)
+
 	  local distance = math.floor((self:GetCoordinate():Get2DDistance(self:GetDetectedUnits():GetCoordinate()))*1.09361+0.5)
 	  local angle = self:GetDetectedUnits():GetCoordinate():GetAngleDegrees(self:GetDetectedUnits():GetCoordinate():GetDirectionVec3(self:GetCoordinate()))
 	  local angle = Cardinals(angle)
