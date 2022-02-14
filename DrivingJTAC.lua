@@ -7,12 +7,7 @@ UTILS.MetersToYard = function(meters)
 end
 
 
-function s(table)
-local Result = routines.utils.oneLineSerialize(table)
-MESSAGE:New(Result,10):ToAll()
-env.info(Result)
-return Result
-end
+
 
  Cardinals = function(angle)
       if     angle <= 22.5  and angle >= 0 then return "N"
@@ -32,7 +27,8 @@ end
 dJTAC = {}
 dJTAC.active_requests = {}
 DrivingJTACShowRequest = {}
-
+menu_command = {}
+CMDMenues = {}
 
 	local BullsCoordinateBlue = COORDINATE:NewFromVec3( coalition.getMainRefPoint( 2 ) ) -- dummy Zone same as bullseye
 	local BullsCoordinateRed = COORDINATE:NewFromVec3( coalition.getMainRefPoint( 1 ) )
@@ -96,9 +92,9 @@ drivingJTAC = function(JTAC,RecceZone)
 	local Coordinate = group:GetCoordinate()
 	local mymarker=MARKER:New(Coordinate, "T00"):ToCoalition(self:GetCoalition()) --(coalition.side.BLUE)
 	
-	--local mymarkerid = _MARKERID
+
 	local mymarkerid = UTILS.GetMarkID()
-	env.info("Markid "..mymarkerid)
+
 	local request = mymarkerid - 1
     
 	 
@@ -131,12 +127,11 @@ drivingJTAC = function(JTAC,RecceZone)
 	  MESSAGE:New(text_JTAC, 30):ToCoalition(self:GetCoalition())
 
 
-	-- einfuegung text nur auf einer Seite zu sehen
+
 	   local function showNineLiner(group)
 			MESSAGE:New(text_NineLiner, 60):ToGroup(group,20)
 		end
 
-	  env.info("self:GetCoalition: " ..self:GetCoalition())
 	  
 	  local coalitionNumber = self:GetCoalition()
 	  
@@ -149,32 +144,28 @@ drivingJTAC = function(JTAC,RecceZone)
 	  else 
 		coaltitionName = "blue"
 	  end
-	 env.info("coaltitionName: " ..coaltitionName)
+
+	  
+	  local clientList = {}
+	  local clientListGroupNames = {}
 	  
 	  
-	
 	  local menuHandle = {}
-	  local Clients = SET_CLIENT:New():FilterCoalitions(coaltitionName):FilterStart()
-	  
-		Clients:ForEachClient(function (MenuClient)
-			if MenuClient:GetGroup() ~= nil then
-				local group = MenuClient:GetGroup()
-				local groupName = group:GetName()
+	  local setgroupsForMessage = SET_GROUP:New():FilterCoalitions(coaltitionName):FilterCategories({"plane","helicopter"}):FilterStart()
 
-				menuHandle = MENU_COALITION_COMMAND:New( self:GetCoalition(), "Show Request "..request , MenuDrivingJTAC, showNineLiner, group) --[group]
-s(menuHandle)
+	
+	  setgroupsForMessage:ForEachGroupAlive(
+		function( MooseGroup )
+			local GroupsName = MooseGroup:GetName()
+			local menuPerGroup = MENU_GROUP_COMMAND:New(MooseGroup,"Show Request "..request , MenuDrivingJTAC , showNineLiner , MooseGroup)
+			CMDMenues[GroupsName] = menuPerGroup
+		end
+	  )
 
-			end
-		end)
 		
-	DrivingJTACShowRequest = {[request] = {menuHandle}}
-	-- einfuegung ende
-		
-	  --DrivingJTACShowRequest = MENU_COALITION_COMMAND:New( self:GetCoalition(), "Show Request "..request , MenuDrivingJTACBlue, showNineLiner) --ShowStatus, "Status of planes is ok!", "Message to Red Coalition" )
+	DrivingJTACShowRequest[request] = CMDMenues
+	dJTAC.active_requests[self] = {["request"] = request, ["mymarker"] = mymarker }--, ["ShowRequest"] = DrivingJTACShowRequest}
 	  
-	  dJTAC.active_requests[self] = {["request"] = request, ["mymarker"] = mymarker , ["ShowRequest"] = DrivingJTACShowRequest}
-	  
-	  return dJTAC.active_requests
 
 	end
 
@@ -188,22 +179,22 @@ s(menuHandle)
 	  local unitsGroup = self:GetDetectedUnits():GetTypeNames()  
 	  local text=string.format("%s: LOST Request %d, abort", self:GetName(), dJTAC.active_requests[self]["request"])
 	  MESSAGE:New(text, 30):ToCoalition(self:GetCoalition())
-	  --env.info(text)
+
 		self:LaserOff()
 		self:RemoveWaypointByID(wpDetection.uid)
 		self:Cruise()
 		
+		
 		dJTAC.active_requests[self]["mymarker"]:Remove()
-		local request = dJTAC.active_requests[self]["request"]
 
-		local importantTable = {}
-		importantTable = dJTAC.active_requests[self]["ShowRequest"]
-		for index, value in pairs(importantTable[request]) do
+
+		local request = dJTAC.active_requests[self]["request"]
+		local menuTableToRemove = DrivingJTACShowRequest[request]--[1]--["Group"]-- die [1] sollte zwischen den {} lesen
+
+		for index, value in pairs(menuTableToRemove) do
 			value:Remove()
+			value:Refresh()
 		end
-		
-		
-		
 	end
 
 	--- Function called when the group enteres a zone.
@@ -236,8 +227,6 @@ s(menuHandle)
 
 
 		
-	  --currentthreatlevel = Target:GetThreatLevel()
-	  --currentthreattype = ThreatLevels[currentthreatlevel+1]
 	  local text=string.format("%s switching on LASER on Request %d (code %d) at target %s", self:GetName(),dJTAC.active_requests[self]["request"], self:GetLaserCode(), currentthreattype) --Target:GetName())
 	  MESSAGE:New(text, 30):ToCoalition(self:GetCoalition()) --:ToAll()
 	  env.info(text)        
