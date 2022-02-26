@@ -52,6 +52,8 @@ drivingJTAC = function(JTAC,RecceZone)
 	local drivingJTAC=ARMYGROUP:New(JTAC)
 	drivingJTAC:Activate()
 	drivingJTAC:SetDetection(true) -- Switch detection on.
+	drivingJTAC:SetDefaultROE(ENUMS.ROE.WeaponHold)
+	drivingJTAC:GetGroup():SetCommandInvisible(true)
 
 	local AllZones=SET_ZONE:New():FilterOnce()
 	drivingJTAC:SetCheckZones(AllZones)
@@ -87,7 +89,7 @@ drivingJTAC = function(JTAC,RecceZone)
 
 	  wpDetection=self:AddWaypoint(self:GetCoordinate():Translate(200,self:GetHeading(),false,false), 30, self:GetWaypointIndexCurrent(), ENUMS.Formation.Vehicle.Vee,true) 
 	  self:__FullStop(-1) -- FullStop work only on the actual waypoint. Here current possition
-	  self:__LaserOn(60, group) --LaserOn(group)  -- Switch LASER on after 60 seconds.  __LaserOn(60, group)  __LaserOn(5, Target)
+	  self:__LaserOn(30, group) --LaserOn(group)  -- Switch LASER on after 60 seconds.  __LaserOn(60, group)  __LaserOn(5, Target)
 
 	local Coordinate = group:GetCoordinate()
 	local mymarker=MARKER:New(Coordinate, "T00"):ToCoalition(self:GetCoalition()) --(coalition.side.BLUE)
