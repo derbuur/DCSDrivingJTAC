@@ -77,8 +77,8 @@ drivingJTAC = function(JTAC,RecceZone)
 			"MR SAMs",
 			"LR SAMs"
 		  }
-	  local group=Group 
-	  local unitsGroup = self:GetDetectedUnits():GetUnitTypesText()--GetTypeNames()
+	  local targetgroup=Group 
+	  local unitsGroup = self:GetDetectedUnits():GetUnitTypesText()
 		 local _,maxThreat = self:GetHighestThreat()
 		 local currentthreattype = ThreatLevels[maxThreat+1]
 		lasercode_table = { 1675, 1688 }
@@ -88,11 +88,11 @@ drivingJTAC = function(JTAC,RecceZone)
 
 
 	  wpDetection=self:AddWaypoint(self:GetCoordinate():Translate(200,self:GetHeading(),false,false), 30, self:GetWaypointIndexCurrent(), ENUMS.Formation.Vehicle.Vee,true) 
-	  self:__FullStop(-1) -- FullStop work only on the actual waypoint. Here current possition
-	  self:__LaserOn(30, group) --LaserOn(group)  -- Switch LASER on after 60 seconds.  __LaserOn(60, group)  __LaserOn(5, Target)
+	  self:__FullStop(-1) 
+	  self:__LaserOn(30, targetgroup)
 
-	local Coordinate = group:GetCoordinate()
-	local mymarker=MARKER:New(Coordinate, "T00"):ToCoalition(self:GetCoalition()) --(coalition.side.BLUE)
+	local Coordinate = targetgroup:GetCoordinate()
+	local mymarker=MARKER:New(Coordinate, "T00"):ToCoalition(self:GetCoalition()) 
 	
 
 	local mymarkerid = UTILS.GetMarkID()
@@ -124,14 +124,14 @@ drivingJTAC = function(JTAC,RecceZone)
 	  local distance = math.floor(UTILS.MetersToYard(self:GetCoordinate():Get2DDistance(self:GetDetectedUnits(1):GetCoordinate())))
 	  local angle = self:GetDetectedUnits():GetCoordinate():GetAngleDegrees(self:GetDetectedUnits():GetCoordinate():GetDirectionVec3(self:GetCoordinate()))
 	  local angle = Cardinals(angle)
-	  local text_NineLiner = string.format(" Message from %s \n Request Nr.: %d \n 4. ELEV %d \n 5. DESC %s \n     %s \n 6. %s \n     %s \n 7. Laser %d \n 8. FRND %s %s", self:GetName(), request ,UTILS.MetersToFeet(Group:GetHeight()), currentthreattype, targetDescription, group:GetCoordinate():ToStringMGRS( nil ), group:GetCoordinate():ToStringLLDMS( nil ) , self:GetLaserCode(), distance, angle )
+	  local text_NineLiner = string.format(" Message from %s \n Request Nr.: %d \n 4. ELEV %d \n 5. DESC %s \n     %s \n 6. %s \n     %s \n 7. Laser %d \n 8. FRND %s %s", self:GetName(), request ,UTILS.MetersToFeet(Group:GetHeight()), currentthreattype, targetDescription, targetgroup:GetCoordinate():ToStringMGRS( nil ), targetgroup:GetCoordinate():ToStringLLDMS( nil ) , self:GetLaserCode(), distance, angle )
 	  local text_JTAC = string.format("%s: has new request %d", self:GetName(), request)
 	  MESSAGE:New(text_JTAC, 30):ToCoalition(self:GetCoalition())
 
 
 
-	   local function showNineLiner(group)
-			MESSAGE:New(text_NineLiner, 60):ToGroup(group,20)
+	   local function showNineLiner(casgroup)
+			MESSAGE:New(text_NineLiner, 60):ToGroup(casgroup,20)
 		end
 
 	  
@@ -229,8 +229,8 @@ drivingJTAC = function(JTAC,RecceZone)
 
 
 		
-	  local text=string.format("%s switching on LASER on Request %d (code %d) at target %s", self:GetName(),dJTAC.active_requests[self]["request"], self:GetLaserCode(), currentthreattype) --Target:GetName())
-	  MESSAGE:New(text, 30):ToCoalition(self:GetCoalition()) --:ToAll()
+	  local text=string.format("%s switching on LASER on Request %d (code %d) at target %s", self:GetName(),dJTAC.active_requests[self]["request"], self:GetLaserCode(), currentthreattype) 
+	  MESSAGE:New(text, 30):ToCoalition(self:GetCoalition())
 	  env.info(text)        
 	end
 
